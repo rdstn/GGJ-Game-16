@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections;
+using UnityEngine.UI;
 
 public class game_logic : MonoBehaviour {
 
@@ -34,6 +35,16 @@ public class game_logic : MonoBehaviour {
     public int turn;
     //For "out of the game" counter
     public bool[] merged;
+    //To update between levels.
+    public Button[] orders_controls;
+    public Button[] home_controls;
+    public Button turn_button;
+    public Dropdown company_selector;
+    public Text progress_bar;
+    public Text credibility_bar;
+    //For newsfeed reasons.
+    public string[] actions;
+
 
 	// Use this for initialization
 	void Start () {
@@ -98,14 +109,27 @@ public class game_logic : MonoBehaviour {
 	}
 
     //The main "turn logic, for the player and the AI."
-    void Turn(int turn)
+    public void Turn(int turn)
     {
+        if (turn>3) { turn = 0; }
         if (turn!=0)
             {
-                ActAI(turn);
+                locked[1] = false;
+                ActAI(1);
+                locked[2] = false;
+                ActAI(2);
+                locked[3] = false;
+                ActAI(3);
+                progress_bar.GetComponent<progress_bar>().Change();
+                credibility_bar.GetComponent<Credibility_bar>().Change();
             }
             else
             {
+            locked[0] = false;
+            turn_button.GetComponent<turn_button>().Reset();
+            company_selector.GetComponent<company_selector>().Reset();
+            for (int i=0; i<=2; i++) { home_controls[i].GetComponent<home_orders>().Reset(); home_controls[i].interactable = true; }
+            for (int i=0; i<=17; i++) { orders_controls[i].GetComponent<orders_button>().Reset(); }
                 if (player_actions[0]=="PR")
                 {
                     PR(turn);
@@ -145,6 +169,7 @@ public class game_logic : MonoBehaviour {
                         JointPR(turn, j);
                     }
                 }
+            turn = 1;
         }
         for (int x = 0; x < 3; x++)
         {
@@ -164,13 +189,14 @@ public class game_logic : MonoBehaviour {
             if (corp3_attitude[x] < 1) { corp3_attitude[x] = 1; }
             if (corp3_attitude[x] > 5) { corp3_attitude[x] = 5; }
         }
-        locked[turn] = false;
+        progress_bar.GetComponent<progress_bar>().Change();
+        credibility_bar.GetComponent<Credibility_bar>().Change();
     }
 
     //PR - boost credibility. Normal development pace.
     void PR(int turn)
     {
-        credibilities[turn] = credibilities[turn] + 20;
+        credibilities[turn] = credibilities[turn] + 10;
         development[turn] = development[turn] + 2;
     }
 
@@ -206,6 +232,11 @@ public class game_logic : MonoBehaviour {
                 credibilities[target] = credibilities[target] + 5;
             }
         }
+        if (target == 0)
+        {
+            Debug.Log(turn + " " + target);
+            actions[turn-1] = "You were slandered by " + names_actual[turn - 1] + "!";
+        }
         if (target == 1)
         {
             corp1_attitude[turn] = corp1_attitude[turn] - 1;
@@ -232,6 +263,11 @@ public class game_logic : MonoBehaviour {
         else
         {
             credibilities[turn] = credibilities[turn] - 5;
+        }
+        if (target == 0)
+        {
+            Debug.Log(turn + " " + target);
+            actions[turn-1] = "You were sued by " + names_actual[turn - 1] + "!";
         }
         if (target == 1)
         {
@@ -264,6 +300,11 @@ public class game_logic : MonoBehaviour {
             development[turn] = development[turn] + 1;
             development[target] = development[target] + 1;
         }
+        if (target == 0)
+        {
+            Debug.Log(turn + " " + target);
+            actions[turn-1] = "You worked together with " + names_actual[turn - 1] + ".";
+        }
         if (target == 1)
         {
             corp1_attitude[turn] = corp1_attitude[turn] + 1;
@@ -284,6 +325,11 @@ public class game_logic : MonoBehaviour {
         if (locked[target] == true)
         {
             credibilities[turn] = credibilities[turn] - 10;
+            if (target == 0)
+            {
+                Debug.Log(turn + " " + target);
+                actions[turn-1] = "You caught a spy from " + names_actual[turn - 1] + "!";
+            }
             if (target == 1)
             {
                 corp1_attitude[turn] = corp1_attitude[turn] - 1;
@@ -321,6 +367,11 @@ public class game_logic : MonoBehaviour {
         {
             credibilities[turn] = credibilities[turn] - 10;
         }
+        if (target == 0)
+        {
+            Debug.Log(turn + " " + target);
+            actions[turn - 1] = "You were devoured. Game over.";
+        }
     }
 
     //Joint PR. Boosts cred.
@@ -328,6 +379,11 @@ public class game_logic : MonoBehaviour {
     {
         credibilities[turn] = credibilities[turn] + 10;
         credibilities[target] = credibilities[target] + 10;
+        if (target == 0)
+        {
+            Debug.Log(turn + " " + target);
+            actions[turn - 1] =  names_actual[turn - 1] + " worked with you on promotion.";
+        }
         if (target == 1)
         {
             corp1_attitude[turn] = corp1_attitude[turn] + 1;
@@ -445,7 +501,7 @@ public class game_logic : MonoBehaviour {
         else
         {
             //Saintly AI - will boost cred, then develop and colab constantly. Never goes for anything bad.
-            if (personalities_actual[turn] == "Saintly")
+            if (personalities_actual[turn-1] == "Saintly")
             {
                 if (credibilities[turn] < 75)
                 {
@@ -468,7 +524,7 @@ public class game_logic : MonoBehaviour {
                     Collaborate(turn, randNumber);
                 }
             }
-            else if(personalities_actual[turn]=="Positive")
+            else if(personalities_actual[turn-1]=="Positive")
             {
                 if (credibilities[turn] < 75)
                 {
@@ -493,7 +549,7 @@ public class game_logic : MonoBehaviour {
                     else { Infiltrate(turn, randNumber); }
                 }
             }
-            else if(personalities_actual[turn]=="PR")
+            else if(personalities_actual[turn-1]=="PR")
             {
                 if (credibilities[turn] < 90)
                 {
@@ -529,7 +585,7 @@ public class game_logic : MonoBehaviour {
                     else { Slander(turn, randNumber); }
                 }
             }
-            else if(personalities_actual[turn]=="Dev")
+            else if(personalities_actual[turn-1]=="Dev")
             {
                 if (credibilities[turn]<50)
                 {
@@ -554,7 +610,7 @@ public class game_logic : MonoBehaviour {
                     else { Infiltrate(turn, randNumber); }
                 }
             }
-            else if(personalities_actual[turn]=="Slanderer")
+            else if(personalities_actual[turn-1]=="Slanderer")
             {
                 if (credibilities[turn] < 50)
                 {
@@ -593,7 +649,7 @@ public class game_logic : MonoBehaviour {
                     else { Slander(turn, randNumber); }
                 }
             }
-            else if(personalities_actual[turn]=="Spy")
+            else if(personalities_actual[turn-1]=="Spy")
             {
                 if (credibilities[turn] < 50)
                 {
@@ -632,7 +688,7 @@ public class game_logic : MonoBehaviour {
                     Infiltrate(turn, randNumber);
                 }
             }
-            else if(personalities_actual[turn]=="Sue")
+            else if(personalities_actual[turn-1]=="Sue")
             {
                 if (credibilities[turn] < 33)
                 {
@@ -673,7 +729,7 @@ public class game_logic : MonoBehaviour {
                     else { Infiltrate(turn, randNumber); }
                 }
             }
-            else if(personalities_actual[turn]=="Negative")
+            else if(personalities_actual[turn-1]=="Negative")
             {
                 if (credibilities[turn] < 33)
                 {
@@ -725,7 +781,7 @@ public class game_logic : MonoBehaviour {
                     }
                 }
             }
-            else if (personalities_actual[turn]=="Demonic")
+            else if (personalities_actual[turn-1]=="Demonic")
             {
                 if (credibilities[turn] < 25)
                 {
