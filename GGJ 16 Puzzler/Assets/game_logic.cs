@@ -4,12 +4,18 @@ using System.Collections;
 
 public class game_logic : MonoBehaviour {
 
-    //Fluff.
+    //Fluff - all possible company names.
     public string[] company_names;
+    //Fluff - the actual names.
+    public string[] names_actual;
     //Personalities, for decision making.
     public string[] personalities_actual;
     //Personality types, from which the actual personalities ingame are chosen.
     public string[] personality_types;
+    //Name-personality comboes picked.
+    public int nature1;
+    public int nature2;
+    public int nature3;
     //Credibility, modifies stock share.
     public int[] credibilities;
     //Development, causes stocks increase or decrease.
@@ -20,24 +26,25 @@ public class game_logic : MonoBehaviour {
     public int[] corp1_attitude;
     public int[] corp2_attitude;
     public int[] corp3_attitude;
-    //Actions. Used to advance the game.
+    //Actions. Used to advance the game. Actions as of now are: none,slander,PR,litigation,collaborate,infiltrate,develop,lockdown, merger, joint PR.
     public string[] player_actions;
-    public string[] corp1_actions;
-    public string[] corp2_actions;
-    public string[] corp3_actions;
-    //Actions as of now are: none,slander,PR,litigation,collaborate,infiltrate,develop,lockdown
-    public int[] action_influences;
     //For lockdown action.
     public bool[] locked;
     //For turn tracking.
     public int turn;
+    //For "out of the game" counter
+    public bool[] merged;
 
 	// Use this for initialization
 	void Start () {
 
-        string[] personality_types = { "Saintly", "Good", "PR", "Balanced", "Sue", "Spy", "Slanderer", "Evil" };
+        string[] company_names = { "DogCo", "Bubble Brothers", "Edgesoft", "Voxel", "Digitron", "Visible Inc.", "Scroll", "Gomorah", "Sata-tech" };
+        string[] personality_types = { "Saintly", "Positive", "Dev", "PR", "Slanderer", "Spy", "Sue","Negative", "Demonic" };
+        nature1 = 10;
+        nature2 = 10;
+        nature3 = 10;
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i <= 3; i++)
         {
             credibilities[i] = 50;
             stock_share[i] = 25;
@@ -45,12 +52,42 @@ public class game_logic : MonoBehaviour {
             corp1_attitude[i] = 3;
             corp2_attitude[i] = 3;
             corp3_attitude[i] = 3;
+            merged[i] = false;
         }
 
-        for (int i=0; i<2; i++)
+        for (int i=0; i<3; i++)
         {
-            int randNumber = UnityEngine.Random.Range(0, personality_types.GetLength(0));
+            int randNumber = UnityEngine.Random.Range(0, 9);
+            if (i==0)
+            {
+                while (randNumber == nature1 || randNumber == nature2 || randNumber == nature3)
+                {
+                    randNumber = UnityEngine.Random.Range(0, 9);
+                }
+                Debug.Log(randNumber);
+                nature1 = randNumber;
+            }
+            if (i == 1)
+            {
+                while (randNumber == nature1 || randNumber == nature2 || randNumber == nature3)
+                {
+                    randNumber = UnityEngine.Random.Range(0, 9);
+                }
+                Debug.Log(randNumber);
+                nature2 = randNumber;
+            }
+            if (i == 2)
+            {
+                while (randNumber == nature1 || randNumber == nature2 || randNumber == nature3)
+                {
+                    randNumber = UnityEngine.Random.Range(0, 9);
+                }
+                Debug.Log(randNumber);
+                nature3 = randNumber;
+            }
+            Debug.Log(i);
             personalities_actual[i] = personality_types[randNumber];
+            names_actual[i] = company_names[randNumber];
         }
 	
 	}
@@ -69,17 +106,14 @@ public class game_logic : MonoBehaviour {
             }
             else
             {
-                //If someone goes for PR, give them dev and credibility.
                 if (player_actions[0]=="PR")
                 {
                     PR(turn);
                 }
-                //If someone goes for dev, give them more dev.
                 else if (player_actions[0]=="develop")
                 {
                     Develop(turn);
                 }
-                //If someone goes for lockdown, prevent slander for next turn.
                 else if (player_actions[0]=="lockdown")
                 {
                     Lockdown(turn);
@@ -102,14 +136,19 @@ public class game_logic : MonoBehaviour {
                     {
                         Infiltrate(turn, j);
                     }
+                    if (player_actions[j]=="merger")
+                    {
+                        Merger(turn, j);
+                    }
+                    if (player_actions[j]=="joint_PR")
+                    {
+                        JointPR(turn, j);
+                    }
                 }
         }
         for (int x = 0; x < 3; x++)
         {
             player_actions[x] = "none";
-            corp1_actions[x] = "none";
-            corp2_actions[x] = "none";
-            corp3_actions[x] = "none";
             if (credibilities[x]<0) { credibilities[x] = 0; }
             if (credibilities[x]>100) { credibilities[x] = 100; }
             if (development[x] < 0) { development[x] = 0; }
@@ -124,8 +163,8 @@ public class game_logic : MonoBehaviour {
             if (corp2_attitude[x] > 5) { corp2_attitude[x] = 5; }
             if (corp3_attitude[x] < 1) { corp3_attitude[x] = 1; }
             if (corp3_attitude[x] > 5) { corp3_attitude[x] = 5; }
-            locked[turn] = false;
         }
+        locked[turn] = false;
     }
 
     //PR - boost credibility. Normal development pace.
@@ -213,15 +252,15 @@ public class game_logic : MonoBehaviour {
     {
         if (credibilities[turn] <= credibilities[target])
         {
-            credibilities[turn] = credibilities[turn] + 10;
-            credibilities[target] = credibilities[target] + 5;
+            credibilities[turn] = credibilities[turn] + 5;
+            credibilities[target] = credibilities[target] + 3;
             development[turn] = development[turn] + 1;
             development[target] = development[target] + 1;
         }
         else
         {
-            credibilities[turn] = credibilities[turn] + 5;
-            credibilities[target] = credibilities[target] + 10;
+            credibilities[turn] = credibilities[turn] + 3;
+            credibilities[target] = credibilities[target] + 5;
             development[turn] = development[turn] + 1;
             development[target] = development[target] + 1;
         }
@@ -265,21 +304,479 @@ public class game_logic : MonoBehaviour {
         }
     }
 
+    //Merger. Adds stock share, mostly to merging company and equalizes credibilty. Only tool to take others out of the game.
+    void Merger (int turn, int target)
+    {
+        if (stock_share[target]<=10)
+        {
+            credibilities[turn] = (credibilities[turn] + credibilities[target]) / 2;
+            stock_share[turn] = stock_share[turn] + stock_share[target] / 2;
+            for (int i=0; i<=3; i++)
+            {
+                stock_share[i] = stock_share[i] + stock_share[target] / 2 * 3;
+            }
+            merged[target] = true;
+        }
+        else
+        {
+            credibilities[turn] = credibilities[turn] - 10;
+        }
+    }
+
+    //Joint PR. Boosts cred.
+    void JointPR (int turn, int target)
+    {
+        credibilities[turn] = credibilities[turn] + 10;
+        credibilities[target] = credibilities[target] + 10;
+        if (target == 1)
+        {
+            corp1_attitude[turn] = corp1_attitude[turn] + 1;
+        }
+        if (target == 2)
+        {
+            corp2_attitude[turn] = corp2_attitude[turn] + 1;
+        }
+        if (target == 3)
+        {
+            corp3_attitude[turn] = corp3_attitude[turn] + 1;
+        }
+    }
+
     void CalculateStock(int corp)
     {
-        //TODO
+        if (credibilities[corp]<15)
+        {
+            stock_share[corp] = stock_share[corp] - 6;
+            for (int i=0; i<=3; i++)
+            {
+                if (i!= corp)
+                {
+                    stock_share[i] = stock_share[i] + 2;
+                }
+            }
+        }
+        else if (credibilities[corp] < 25)
+        {
+            stock_share[corp] = stock_share[corp] - 3;
+            for (int i = 0; i <= 3; i++)
+            {
+                if (i != corp)
+                {
+                    stock_share[i] = stock_share[i] + 1;
+                }
+            }
+        }
+        else if (credibilities[corp] < 33)
+        {
+            //Nothig is changed, because we aren't credible enough to sell and aren't uncredible enough to not sell.
+        }
+        else if (credibilities[corp] < 50)
+        {
+            stock_share[corp] = stock_share[corp] + 3;
+            for (int i = 0; i <= 3; i++)
+            {
+                if (i != corp)
+                {
+                    stock_share[i] = stock_share[i] - 1;
+                }
+            }
+        }
+        else if (credibilities[corp] < 66)
+        {
+            stock_share[corp] = stock_share[corp] + 6;
+            for (int i = 0; i <= 3; i++)
+            {
+                if (i != corp)
+                {
+                    stock_share[i] = stock_share[i] - 2;
+                }
+            }
+        }
+        else if (credibilities[corp] < 75)
+        {
+            stock_share[corp] = stock_share[corp] + 9;
+            for (int i = 0; i <= 3; i++)
+            {
+                if (i != corp)
+                {
+                    stock_share[i] = stock_share[i] - 3;
+                }
+            }
+        }
+        else if (credibilities[corp] <= 100)
+        {
+            stock_share[corp] = stock_share[corp] + 12;
+            for (int i = 0; i <= 3; i++)
+            {
+                if (i != corp)
+                {
+                    stock_share[i] = stock_share[i] - 4;
+                }
+            }
+        }
     }
 
     //AI Behavioral patterns.
     void ActAI(int turn)
     {
-        //Saintly AI - will boost cred, then develop and colab constantly. Never goes for anything bad.
-        if (personalities_actual[turn] == "Saintly")
-        {
-            if (credibilities[turn] < 100)
-            {
+        //Grab the attitudes of the current AI.
+        int[] attitude = new int[4] { 3, 3, 3, 3 };
+        if (turn == 1) { attitude = corp1_attitude; }
+        if (turn == 2) { attitude = corp2_attitude; }
+        if (turn == 3) { attitude = corp3_attitude; }
 
+        //Attitudes check for current AI.
+        int[] status = new int[4] { 2, 2, 2, 2 }; //1 is for friends, 0 is for enemies, 2 is for self and companies we are neutral towards.
+        for (int i=0; i<=3; i++)
+        {
+            if (attitude[i]<3)
+            {
+                status[i] = 0;
             }
+            if (attitude[i]>3)
+            {
+                status[i] = 1;
+            }
+        }
+        if (merged[turn] == true)
+        {
+            //A company can't do anything if it is merged.
+        }
+        else
+        {
+            //Saintly AI - will boost cred, then develop and colab constantly. Never goes for anything bad.
+            if (personalities_actual[turn] == "Saintly")
+            {
+                if (credibilities[turn] < 75)
+                {
+                    PR(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber==turn || merged[randNumber]==true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    JointPR(turn, randNumber);
+                }
+                else
+                {
+                    Develop(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    Collaborate(turn, randNumber);
+                }
+            }
+            else if(personalities_actual[turn]=="Positive")
+            {
+                if (credibilities[turn] < 75)
+                {
+                    PR(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0) { JointPR(turn, randNumber); }
+                    else { Infiltrate(turn, randNumber); }
+                }
+                else
+                {
+                    Develop(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0) { Collaborate(turn, randNumber); }
+                    else { Infiltrate(turn, randNumber); }
+                }
+            }
+            else if(personalities_actual[turn]=="PR")
+            {
+                if (credibilities[turn] < 90)
+                {
+                    PR(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0) { JointPR(turn, randNumber); }
+                    else { Slander(turn, randNumber); }
+                }
+                else if (stock_share[turn] < 15)
+                {
+                    Develop(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true || stock_share[randNumber]<stock_share[turn])
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0 & stock_share[randNumber]<12) { Merger(turn, randNumber); }
+                    else { Infiltrate(turn, randNumber); }
+                }
+                else
+                {
+                    Lockdown(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0) { Collaborate(turn, randNumber); }
+                    else { Slander(turn, randNumber); }
+                }
+            }
+            else if(personalities_actual[turn]=="Dev")
+            {
+                if (credibilities[turn]<50)
+                {
+                    PR(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0) { Collaborate(turn, randNumber); }
+                    else { Infiltrate(turn, randNumber); }
+                }
+                else
+                {
+                    Develop(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0) { Collaborate(turn, randNumber); }
+                    else { Infiltrate(turn, randNumber); }
+                }
+            }
+            else if(personalities_actual[turn]=="Slanderer")
+            {
+                if (credibilities[turn] < 50)
+                {
+                    PR(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0) { JointPR(turn, randNumber); }
+                    else { Slander(turn, randNumber); }
+                }
+                else if (stock_share[turn] < 15)
+                {
+                    Develop(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true || stock_share[randNumber] < stock_share[turn])
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0 & stock_share[randNumber] < 12) { Merger(turn, randNumber); }
+                    else if (status[randNumber]!=0) { Infiltrate(turn, randNumber); }
+                    else { Slander(turn, randNumber); }
+                }
+                else
+                {
+                    int randNumber2 = UnityEngine.Random.Range(0,2);
+                    if (randNumber2==0) { Lockdown(turn); }
+                    else { PR(turn); }
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0) { Collaborate(turn, randNumber); }
+                    else { Slander(turn, randNumber); }
+                }
+            }
+            else if(personalities_actual[turn]=="Spy")
+            {
+                if (credibilities[turn] < 50)
+                {
+                    int randNumber2 = UnityEngine.Random.Range(0, 2);
+                    if (randNumber2 == 0) { Lockdown(turn); }
+                    else { PR(turn); }
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0) { JointPR(turn, randNumber); }
+                    else { Infiltrate(turn, randNumber); }
+                }
+                else if (stock_share[turn] < 20)
+                {
+                    Develop(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true || stock_share[randNumber] < stock_share[turn])
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0 & stock_share[randNumber] < 12) { Merger(turn, randNumber); }
+                    else { Infiltrate(turn, randNumber); }
+                }
+                else
+                {
+                    int randNumber2 = UnityEngine.Random.Range(0, 2);
+                    if (randNumber2 == 0) { Lockdown(turn); }
+                    else { Develop(turn); }
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    Infiltrate(turn, randNumber);
+                }
+            }
+            else if(personalities_actual[turn]=="Sue")
+            {
+                if (credibilities[turn] < 33)
+                {
+                    PR(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    JointPR(turn, randNumber);
+                }
+                else if (stock_share[turn] < 25)
+                {
+                    int randNumber2 = UnityEngine.Random.Range(0, 2);
+                    if (randNumber2 == 0) { PR(turn); }
+                    else { Develop(turn); }
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true || stock_share[randNumber] < stock_share[turn])
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (status[randNumber] != 0 & stock_share[randNumber] < 12) { Merger(turn, randNumber); }
+                    else if (stock_share[randNumber]<stock_share[turn]+3) { Litigation(turn, randNumber); }
+                    else { Infiltrate(turn, randNumber); }
+                }
+                else
+                {
+                    int randNumber2 = UnityEngine.Random.Range(0, 3);
+                    if (randNumber2 == 0) { PR(turn); }
+                    else if (randNumber2 == 1) { Lockdown(turn); }
+                    else { Develop(turn); }
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true || stock_share[randNumber] < stock_share[turn])
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (stock_share[turn]+3>stock_share[randNumber]) { Litigation(turn, randNumber); }
+                    else { Infiltrate(turn, randNumber); }
+                }
+            }
+            else if(personalities_actual[turn]=="Negative")
+            {
+                if (credibilities[turn] < 33)
+                {
+                    PR(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    JointPR(turn, randNumber);
+                }
+                else if (stock_share[turn] < 25)
+                {
+                    int randNumber2 = UnityEngine.Random.Range(0, 3);
+                    if (randNumber2 == 0) { Lockdown(turn); }
+                    else if (randNumber2 == 1) { PR(turn); }
+                    else { Develop(turn); }
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true || stock_share[randNumber] < stock_share[turn])
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (stock_share[randNumber] < 12) { Merger(turn, randNumber); }
+                    else if (stock_share[randNumber] < stock_share[turn] + 3) { Litigation(turn, randNumber); }
+                    else
+                    {
+                        if (randNumber2 == 0) { Infiltrate(turn, randNumber); }
+                        else { Slander(turn, randNumber); }
+                    }
+                }
+                else
+                {
+                    int randNumber2 = UnityEngine.Random.Range(0, 3);
+                    if (randNumber2 == 0) { Lockdown(turn); }
+                    else if (randNumber2 == 1) { PR(turn); }
+                    else { Develop(turn); }
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (stock_share[randNumber] < 12) { Merger(turn, randNumber); }
+                    else if (stock_share[randNumber] < stock_share[turn] + 3) { Litigation(turn, randNumber); }
+                    else
+                    {
+                        if (randNumber2 == 0) { Infiltrate(turn, randNumber); }
+                        else if (randNumber2 == 1) { JointPR(turn, randNumber); }
+                        else { Slander(turn, randNumber); }
+                    }
+                }
+            }
+            else if (personalities_actual[turn]=="Demonic")
+            {
+                if (credibilities[turn] < 25)
+                {
+                    PR(turn);
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    JointPR(turn, randNumber);
+                }
+                else if (stock_share[turn] < 50)
+                {
+                    int randNumber2 = UnityEngine.Random.Range(0, 3);
+                    if (randNumber2 == 0) { Lockdown(turn); }
+                    else if (randNumber2 == 1) { PR(turn); }
+                    else { Develop(turn); }
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true || stock_share[randNumber] < stock_share[turn])
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (stock_share[randNumber] < 12) { Merger(turn, randNumber); }
+                    else if (stock_share[randNumber] < stock_share[turn] + 3) { Litigation(turn, randNumber); }
+                    else
+                    {
+                        if (randNumber2 == 0) { Slander(turn, randNumber); }
+                        else { Infiltrate(turn, randNumber); }
+                    }
+                }
+                else
+                {
+                    int randNumber2 = UnityEngine.Random.Range(0, 3);
+                    if (randNumber2 == 0) { Lockdown(turn); }
+                    else if (randNumber2 == 1) { PR(turn); }
+                    else { Develop(turn); }
+                    int randNumber = UnityEngine.Random.Range(0, 4);
+                    while (randNumber == turn || merged[randNumber] == true)
+                    {
+                        randNumber = UnityEngine.Random.Range(0, 4);
+                    }
+                    if (stock_share[randNumber] < 12) { Merger(turn, randNumber); }
+                    else if (stock_share[randNumber] < stock_share[turn] + 3) { Litigation(turn, randNumber); }
+                    else
+                    {
+                        if (randNumber2 == 0) { Infiltrate(turn, randNumber); }
+                        else { Slander(turn, randNumber); }
+                    }
+                }
+            }
+            else { Debug.Log("We have no proper personality type for this company. Company number: " + turn +". Personalities: " + personalities_actual); }
         }
     }
 }
