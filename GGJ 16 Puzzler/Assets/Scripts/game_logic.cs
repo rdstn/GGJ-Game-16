@@ -44,6 +44,7 @@ public class game_logic : MonoBehaviour {
     public Text credibility_bar;
     //For newsfeed reasons.
     public string[] actions;
+    public int winner;
 
 
 	// Use this for initialization
@@ -54,6 +55,7 @@ public class game_logic : MonoBehaviour {
         nature1 = 10;
         nature2 = 10;
         nature3 = 10;
+        winner = -1;
 
         for (int i = 0; i <= 3; i++)
         {
@@ -485,6 +487,7 @@ public class game_logic : MonoBehaviour {
                 }
             }
         }
+        if (stock_share[corp]>=90) { winner = corp; }
     }
 
     //AI Behavioral patterns.
