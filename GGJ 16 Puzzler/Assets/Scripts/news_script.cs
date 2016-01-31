@@ -15,7 +15,6 @@ public class news_script : MonoBehaviour {
 	
     public void Change ()
     {
-        Debug.Log("Newsfeed has been evoked!");
         if (script.GetComponent<game_logic>().actions[number] != "") { itself.text = script.GetComponent<game_logic>().actions[number]+""; }
         else
         {
@@ -42,7 +41,7 @@ public class news_script : MonoBehaviour {
             }
             else if (randNumber == 5)
             {
-                itself.text = "Woman finds Hat in Tree";
+                itself.text = "Woman Finds Hat in Tree";
             }
             else if (randNumber == 6)
             {
@@ -50,11 +49,11 @@ public class news_script : MonoBehaviour {
             }
             else if (randNumber == 7)
             {
-                itself.text = "Shock as Pope steps down two years after Birmingham visit";
+                itself.text = "Shock as Pope Steps Down Two Years After Birmingham Visit";
             }
             else if (randNumber == 8)
             {
-                itself.text = "Bugs in this Game Made My Cat Cry";
+                itself.text = "Bugs In This Game Made My Cat Cry";
             }
             else if (randNumber == 9)
             {
@@ -62,11 +61,11 @@ public class news_script : MonoBehaviour {
             }
             else if (randNumber == 10)
             {
-                itself.text = "Cafe Ejects Noise Girl, 2";
+                itself.text = "Cafe Ejects Noisy Girl, 2";
             }
             else if (randNumber == 11)
             {
-                itself.text = "Castle Under Attace From Pidgeons";
+                itself.text = "Castle Under Attack From Pidgeons";
             }
             else if (randNumber == 12)
             {
@@ -146,7 +145,7 @@ public class news_script : MonoBehaviour {
             }
             else if (randNumber == 31)
             {
-                itself.text = "Dog Poo Squal Results Squashed";
+                itself.text = "Dog Poo Squad Results Squashed";
             }
             else if (randNumber == 32)
             {
@@ -154,7 +153,7 @@ public class news_script : MonoBehaviour {
             }
             else if (randNumber == 33)
             {
-                itself.text = "\"Girl Scout Cookies Promote Lesbians\"";
+                itself.text = "\"Girl Scout Cookies Promote Lesbianism\"";
             }
             else if (randNumber == 34)
             {
@@ -178,13 +177,8 @@ public class news_script : MonoBehaviour {
             }
             else if (randNumber == 39)
             {
-                itself.text = "Stolem Prosthetic Arm Found in Second Hand Shop";
+                itself.text = "Stolen Prosthetic Arm Found in Second Hand Shop";
             }
         }
     }
-
-	// Update is called once per frame
-	void Update () {
-	
-	}
 }
