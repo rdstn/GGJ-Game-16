@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿//TODO: Credibilities and market share capping!
+
+using UnityEngine;
 using System;
 using System.Collections;
 using UnityEngine.UI;

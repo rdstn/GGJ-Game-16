@@ -71,6 +71,7 @@
     <Compile Include="Assets\Credibility_bar.cs" />
     <Compile Include="Assets\DayMarker.cs" />
     <Compile Include="Assets\audio_script.cs" />
+    <Compile Include="Assets\audio_script_home_orders.cs" />
     <Compile Include="Assets\company_selector.cs" />
     <Compile Include="Assets\confirm_button.cs" />
     <Compile Include="Assets\game_logic.cs" />
